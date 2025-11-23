@@ -1,6 +1,6 @@
+#define ROM_HEADER_INCLUDE
+
 #include "global.h"
-#include "battle_main.h"
-#include "data.h"
 #include "decoration.h"
 #include "item.h"
 #include "move.h"

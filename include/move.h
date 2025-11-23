@@ -617,4 +617,8 @@ static inline const u8 *GetMoveBattleScript(u32 moveId)
     return gBattleMoveEffects[GetMoveEffect(moveId)].battleScript;
 }
 
+#ifndef ROM_HEADER_INCLUDE
+extern const __attribute__((unavailable)) struct MoveInfo gMovesInfo[];
+#endif // ROM_HEADER_INCLUDE
+
 #endif // GUARD_MOVES_H
