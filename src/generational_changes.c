@@ -104,7 +104,7 @@ void SetConfig(enum ConfigTag _genConfig, u32 _value)
 #if TESTING
 void TestInitConfigData(void)
 {
-    gConfigChangesTestOverride = Alloc(sizeof(sConfigChanges));
+    gConfigChangesTestOverride = AllocWithFlags(sizeof(sConfigChanges), TEST_ALLOC_PERSIST_ENTIRE_TEST);
     memcpy(gConfigChangesTestOverride, &sConfigChanges, sizeof(sConfigChanges));
 }
 

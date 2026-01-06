@@ -130,7 +130,7 @@ static u32 AssignCostToRunner(void)
     return minCostProcess;
 }
 
-void TestRunner_CheckMemory(void)
+void TestRunner_CheckMemory(enum TestAllocFlag ignoredFlags)
 {
     if (gTestRunnerState.result == TEST_RESULT_PASS
      && !gTestRunnerState.expectLeaks)
@@ -149,28 +149,21 @@ void TestRunner_CheckMemory(void)
                 break;
             }
 
-            if (block->allocated)
+            if (block->allocated && (block->testFlags & ignoredFlags) != ignoredFlags)
             {
                 const char *location = MemBlockLocation(block);
                 if (location)
                 {
-                    const char *cmpString = "src/generational_changes.c";
-                    for (u32 charIndex = 0; charIndex < 26; charIndex++)
-                    {
-                        if (cmpString[charIndex] != location[charIndex])
-                        {
-                            Test_MgbaPrintf("%s: %d bytes not freed", location, block->size);
-                            gTestRunnerState.result = TEST_RESULT_FAIL;
-       
-                            if (gTestRunnerState.expectedFailState == EXPECT_FAIL_OPEN)
-                                gTestRunnerState.expectedFailState = EXPECT_FAIL_SUCCESS;
-                            break;
-                        }
-                    }
+                    Test_MgbaPrintf("%s: %d bytes not freed", location, block->size << 2);
+                    gTestRunnerState.result = TEST_RESULT_FAIL;
+
+                    if (gTestRunnerState.expectedFailState == EXPECT_FAIL_OPEN)
+                        gTestRunnerState.expectedFailState = EXPECT_FAIL_SUCCESS;
+                    break;
                 }
                 else
                 {
-                    Test_MgbaPrintf("<unknown>: %d bytes not freed", block->size);
+                    Test_MgbaPrintf("<unknown>: %d bytes not freed", block->size << 2);
                     gTestRunnerState.result = TEST_RESULT_FAIL;
 
                     if (gTestRunnerState.expectedFailState == EXPECT_FAIL_OPEN)
@@ -357,7 +350,7 @@ top:
             gTestRunnerState.tearDown = FALSE;
         }
 
-        TestRunner_CheckMemory();
+        TestRunner_CheckMemory(TEST_ALLOC_FLAG_NONE);
 
         if (gTestRunnerState.test->runner == &gAssumptionsRunner)
         {

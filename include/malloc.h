@@ -1,7 +1,6 @@
 #ifndef GUARD_ALLOC_H
 #define GUARD_ALLOC_H
 
-
 #define FREE_AND_SET_NULL(ptr)          \
 {                                       \
     Free(ptr);                          \
@@ -12,33 +11,25 @@
 
 #define MALLOC_SYSTEM_ID 0xA3A3
 
+enum TestAllocFlag {
+    TEST_ALLOC_FLAG_NONE = 0,
+    TEST_ALLOC_PERSIST_ENTIRE_TEST = 1,
+};
+
 struct MemBlock
 {
-    // Whether this block is currently allocated.
-    u16 allocated:1;
-
-    u16 unused_00:4;
-
-    // High 11 bits of location pointer.
-    u16 locationHi:11;
-
-    // Magic number used for error checking. Should equal MALLOC_SYSTEM_ID.
-    u16 magic;
-
-    // Size of the block (not including this header struct).
-    u32 size:18;
-
-    // Low 14 bits of location pointer.
-    u32 locationLo:14;
-
-    // Previous block pointer. Equals sHeapStart if this is the first block.
     struct MemBlock *prev;
 
-    // Next block pointer. Equals sHeapStart if this is the last block.
     struct MemBlock *next;
 
-    // Data in the memory block. (Arrays of length 0 are a GNU extension.)
-    u8 data[0];
+    bool32 allocated: 1;
+    enum TestAllocFlag testFlags: 3;
+    uintptr_t location: 28; // Top 4 bits of pointers are always 0
+
+    u16 magic; // Magic number used for error checking. Should equal MALLOC_SYSTEM_ID.
+    u16 size; // size of the block excluding this header, in multiples of 4 bytes
+
+    uint8_t data[0];
 };
 
 #define HEAP_SIZE 0x1C300
@@ -46,18 +37,24 @@ extern u8 gHeap[HEAP_SIZE];
 
 #if TESTING || !defined(NDEBUG)
 
-#define Alloc(size) Alloc_(size, __FILE__ ":" STR(__LINE__))
-#define AllocZeroed(size) AllocZeroed_(size, __FILE__ ":" STR(__LINE__))
+#define Alloc(size) Alloc_(size, __FILE__ ":" STR(__LINE__), TEST_ALLOC_FLAG_NONE)
+#define AllocZeroed(size) AllocZeroed_(size, __FILE__ ":" STR(__LINE__), TEST_ALLOC_FLAG_NONE)
+
+#define AllocWithFlags(size, flags) Alloc_(size, __FILE__ ":" STR(__LINE__), flags)
+#define AllocZeroedWithFlags(size, flags) AllocZeroed_(size, __FILE__ ":" STR(__LINE__), flags)
 
 #else
 
-#define Alloc(size) Alloc_(size, NULL)
-#define AllocZeroed(size) AllocZeroed_(size, NULL)
+#define Alloc(size) Alloc_(size, NULL, TEST_ALLOC_FLAG_NONE)
+#define AllocZeroed(size) AllocZeroed_(size, NULL, TEST_ALLOC_FLAG_NONE)
+
+#define AllocWithFlags(size, flags) Alloc_(size, NULL, TEST_ALLOC_FLAG_NONE)
+#define AllocZeroedWithFlags(size, flags) AllocZeroed_(size, NULL, TEST_ALLOC_FLAG_NONE)
 
 #endif
 
-void *Alloc_(u32 size, const char *location);
-void *AllocZeroed_(u32 size, const char *location);
+void *Alloc_(u32 size, const char *location, enum TestAllocFlag flags);
+void *AllocZeroed_(u32 size, const char *location, enum TestAllocFlag flags);
 void Free(void *pointer);
 void InitHeap(void *heapStart, u32 heapSize);
 

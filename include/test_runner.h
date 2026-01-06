@@ -12,6 +12,7 @@ extern const bool8 gTestRunnerSkipIsFail;
 #if TESTING
 
 enum Gimmick;
+enum TestAllocFlag;
 
 void TestRunner_Battle_RecordAbilityPopUp(u32 battlerId, enum Ability ability);
 void TestRunner_Battle_RecordAnimation(u32 animType, u32 animId);
@@ -26,7 +27,7 @@ void TestRunner_Battle_CheckSwitch(u32 battlerId, u32 partyIndex);
 void TestRunner_Battle_CheckAiMoveScores(u32 battlerId);
 void TestRunner_Battle_AISetScore(const char *file, u32 line, u32 battlerId, u32 moveIndex, s32 score);
 void TestRunner_Battle_AIAdjustScore(const char *file, u32 line, u32 battlerId, u32 moveIndex, s32 score);
-void TestRunner_CheckMemory(void);
+void TestRunner_CheckMemory(enum TestAllocFlag ignoredFlags);
 
 void TestRunner_Battle_CheckBattleRecordActionType(u32 battlerId, u32 recordIndex, u32 actionType);
 
